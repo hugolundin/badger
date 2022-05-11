@@ -8,7 +8,7 @@ authors = [
 repository = 'https://github.com/hugolundin/badger'
 
 [tool.poetry.scripts]
-badger = "cli:main"
+badger = "badger.cli:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"

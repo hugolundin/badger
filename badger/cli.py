@@ -5,9 +5,9 @@ import sys
 import click
 import asyncio
 from signal import SIGINT, SIGTERM
-from setproctitle import setproctitle, setthreadtitle
+from setproctitle import setproctitle
 
-from badger import Badger
+from .badger import Badger
 
 def cancel():
     for t in asyncio.all_tasks():
