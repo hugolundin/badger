@@ -19,5 +19,6 @@ toml = "^0.10.2"
 zeroconf = "^0.38.6"
 coloredlogs = "^15.0.1"
 setproctitle = {git = "https://github.com/dvarrazzo/py-setproctitle", rev = "06dfd8e07b9c387f07f55f9a53fff7c22ad2f68e"}
+result = "^0.8.0"
 
 [tool.poetry.dev-dependencies]
