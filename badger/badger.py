@@ -1,7 +1,7 @@
 import logging
 log = logging.getLogger(__name__)
 
-import asyncio, socket
+import socket
 from result import Ok, Err
 from zeroconf import IPVersion, ServiceInfo, Zeroconf
 
@@ -9,9 +9,9 @@ from .proxy import Proxy
 
 class Badger:
     def __init__(self):
-        self.mappings = {'test': ('127.0.0.1', 8000)}
+        self.mappings = {}
         self.proxy = Proxy()
-        self.zeroconf = Zeroconf(ip_version=IPVersion.All)
+        self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
 
     def __del__(self):
         self.zeroconf.unregister_all_services()
@@ -31,7 +31,7 @@ class Badger:
             service = ServiceInfo(
                 '_http._tcp.local.',
                 f'{name}._http._tcp.local.',
-                addresses=[socket.inet_aton('10.0.0.4')],
+                addresses=[socket.inet_aton('10.0.0.52')],
                 port=80,
                 properties={},
                 server=f'{name}.local',

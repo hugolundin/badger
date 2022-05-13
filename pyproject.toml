@@ -16,7 +16,7 @@ click = "^8.1.3"
 mitmproxy = "^8.0.0"
 docker = "^5.0.3"
 toml = "^0.10.2"
-zeroconf = "^0.38.6"
+zeroconf = {git = "https://github.com/jstasiak/python-zeroconf", rev = "1aa7842ae0f914c10465ae977551698046406d55"}
 coloredlogs = "^15.0.1"
 setproctitle = {git = "https://github.com/dvarrazzo/py-setproctitle", rev = "06dfd8e07b9c387f07f55f9a53fff7c22ad2f68e"}
 result = "^0.8.0"

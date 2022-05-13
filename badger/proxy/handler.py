@@ -2,8 +2,6 @@ import json
 
 from mitmproxy import http, addonmanager, ctx, exceptions
 
-# mitmdump -p 80 -s handler.py --quiet --set mappings='[{"name": "hej", "host": "127.0.0.1", "port": 8800}]'
-
 class ProxyHandler:
     def __init__(self):
         self.mappings = {}
