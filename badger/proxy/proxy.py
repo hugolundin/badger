@@ -19,18 +19,23 @@ class Proxy:
             {'name': name, 'host': host, 'port': port} for name, (host, port) in mappings.items()
         ]))
 
-        process = await asyncio.create_subprocess_shell(
+        self.process = await asyncio.create_subprocess_shell(
             f'mitmdump -p {self.port} -s {self.script} {"--quiet" if self.quiet else ""} --set mappings={data}'
         )
 
-        log.debug(f'Started {process.pid}')
-
-        stdout, stderr = await process.communicate()
-
+        log.debug(f'Started {self.process.pid}')
+        stdout, stderr = await self.process.communicate()
         log.debug(f'{stdout} {stderr}')
 
-        match process.returncode:
+        match self.process.returncode:
             case 0:
                 return Ok()
             case code:
                 return Err(code)
+
+    async def stop(self):
+        await self.process.terminate()
+
+    async def restart(self, mappings):
+        await self.stop()
+        await self.run(mappings)

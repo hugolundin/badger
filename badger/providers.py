@@ -2,12 +2,14 @@ import logging
 from tabnanny import check
 log = logging.getLogger(__name__)
 
-import toml, asyncio
+import toml, asyncio, json, hashlib
 from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import RegexMatchingEventHandler
 
-import utilities
+def checksum2(data: dict) -> str:
+    serialized = json.dumps(data, sort_keys=True, ensure_ascii=True)
+    return hashlib.md5(serialized.encode('utf-8'))
 
 class DockerProvider:
     pass
@@ -27,14 +29,14 @@ class ConfigProvider:
         self.fetch()
 
     async def run(self):
-        self.fetch()
+        await self.fetch()
         event_handler = RegexMatchingEventHandler(str(self.path))
         event_handler.on_any_event = self.on_any_event
         self.observer.schedule(event_handler, self.path.parents[0])
         self.observer.start()
         await asyncio.Event().wait()
 
-    def fetch(self):
+    async def fetch(self):
         mappings = {}
         
         try:
@@ -50,10 +52,10 @@ class ConfigProvider:
         except FileNotFoundError:
             pass
         
-        checksum = utilities.checksum(mappings)
+        checksum = checksum2(mappings)
         if checksum != self.checksum:
             self.checksum = checksum
-            self.callback(mappings)
+            await self.callback(mappings)
 
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
