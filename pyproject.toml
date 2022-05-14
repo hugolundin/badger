@@ -20,5 +20,6 @@ zeroconf = {git = "https://github.com/jstasiak/python-zeroconf", rev = "1aa7842a
 coloredlogs = "^15.0.1"
 setproctitle = {git = "https://github.com/dvarrazzo/py-setproctitle", rev = "06dfd8e07b9c387f07f55f9a53fff7c22ad2f68e"}
 result = "^0.8.0"
+watchdog = "^2.1.7"
 
 [tool.poetry.dev-dependencies]
