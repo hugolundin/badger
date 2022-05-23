@@ -1,42 +1,42 @@
 import logging
-from tabnanny import check
 log = logging.getLogger(__name__)
 
-import toml, asyncio
-from pathlib import Path
-from watchdog.observers import Observer
-from watchdog.events import RegexMatchingEventHandler
-
-import utilities
+import toml
+import docker
 
 class DockerProvider:
-    pass
-
-class ConfigProvider:
-    def __init__(self, config, callback):
-        self.path = Path(__file__).with_name(config).resolve()
+    def __init__(self, callback):
+        self.client = docker.from_env()
         self.callback = callback
-        self.observer = Observer()
-        self.checksum = None
-
-    def __del__(self):
-        self.observer.stop()
-        self.observer.join()
-
-    def on_any_event(self, _):
-        self.fetch()
 
     async def run(self):
         self.fetch()
-        event_handler = RegexMatchingEventHandler(str(self.path))
-        event_handler.on_any_event = self.on_any_event
-        self.observer.schedule(event_handler, self.path.parents[0])
-        self.observer.start()
-        await asyncio.Event().wait()
 
     def fetch(self):
         mappings = {}
+
+        for container in self.client.containers.list():
+            try:
+                name = container.labels['BADGER_NAME']
+                host = container.labels['BADGER_HOST']
+                port = container.labels['BADGER_PORT']
+                mappings[name] = (host, port)
+            except KeyError:
+                continue
         
+        self.callback(mappings)
+
+class ConfigProvider:
+    def __init__(self, path, callback):
+        self.path = path
+        self.callback = callback
+
+    async def run(self):
+        self.fetch()
+
+    def fetch(self):
+        mappings = {}
+
         try:
             config = toml.load(self.path)
             for name, mapping in config.items():
@@ -48,19 +48,6 @@ class ConfigProvider:
                 
                 mappings[name] = (host, port)
         except FileNotFoundError:
-            pass
-        
-        checksum = utilities.checksum(mappings)
-        if checksum != self.checksum:
-            self.checksum = checksum
-            self.callback(mappings)
+            return
 
-if __name__ == "__main__":
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    def callback(mappings):
-        print(mappings)
-
-    config = ConfigProvider('config.toml', callback)
-    loop.run_until_complete(config.run())
+        self.callback(mappings)

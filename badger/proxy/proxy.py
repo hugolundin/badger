@@ -7,7 +7,7 @@ from pathlib import Path
 from result import Result, Ok, Err
 
 class Proxy:
-    def __init__(self, port=80, script='handler.py', quiet=True):
+    def __init__(self, port=80, script='handler.py', quiet=False):
         self.port = port
         self.script = Path(__file__).with_name(script).resolve()
         self.quiet = quiet

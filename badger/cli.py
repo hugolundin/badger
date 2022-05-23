@@ -24,7 +24,7 @@ def main(ctx, level):
 
     setproctitle(ctx.command_path)
 
-    badger = Badger()
+    badger = Badger('config.toml')
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     
@@ -35,6 +35,9 @@ def main(ctx, level):
        loop.run_until_complete(badger.run())
     except asyncio.exceptions.CancelledError:
         pass
+    except KeyboardInterrupt:
+        pass
     finally:
+        badger.stop()
         loop.run_until_complete(loop.shutdown_asyncgens())
         loop.close()
