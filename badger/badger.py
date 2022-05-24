@@ -1,30 +1,29 @@
 import logging
-
-from badger.providers import ConfigProvider
 log = logging.getLogger(__name__)
 
-import socket
-import asyncio
-from pathlib import Path
+import socket, os
 from result import Ok, Err
-from os.path import exists
 from zeroconf import IPVersion, ServiceInfo, Zeroconf
 
 from .proxy import Proxy
 from .providers import ConfigProvider, DockerProvider
+from badger.providers import ConfigProvider
+
 
 class Badger:
-    def __init__(self, config):
+    def __init__(self, config, docker):
         self.mappings = {}
         self.proxy = Proxy()
         self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
         self.providers = []
 
-        path = Path(__file__).with_name(config).resolve()
-        if exists(path):
-            self.providers.append(ConfigProvider(path, self.did_receive_mappings))
+        if os.path.exists(config):
+            log.debug(f'Adding ConfigProvider for {config}.')
+            self.providers.append(ConfigProvider(config, self.did_receive_mappings))
 
-        self.providers.append(DockerProvider(self.did_receive_mappings))
+        if docker:
+            log.debug(f'Docker enabled.')
+            self.providers.append(DockerProvider(self.did_receive_mappings))
 
     def did_receive_mappings(self, mappings):
         self.mappings.update(mappings)
@@ -37,7 +36,7 @@ class Badger:
             service = ServiceInfo(
                 '_http._tcp.local.',
                 f'{name}._http._tcp.local.',
-                addresses=[socket.inet_aton('10.0.0.52')],
+                addresses=[socket.inet_aton('0.0.0.0')],
                 port=80,
                 properties={},
                 server=f'{name}.local',
@@ -51,5 +50,7 @@ class Badger:
             case Err(ret):
                 log.error(f'Proxy returned {ret}')
 
+        log.debug('Unregistering Zeroconf services')
         self.zeroconf.unregister_all_services()
         self.zeroconf.close()
+        
