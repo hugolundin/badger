@@ -38,6 +38,5 @@ def main(ctx, level):
     except KeyboardInterrupt:
         pass
     finally:
-        badger.stop()
         loop.run_until_complete(loop.shutdown_asyncgens())
         loop.close()

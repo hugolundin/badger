@@ -26,12 +26,8 @@ class Badger:
 
         self.providers.append(DockerProvider(self.did_receive_mappings))
 
-    def __del__(self):
-        self.zeroconf.unregister_all_services()
-        self.zeroconf.close()
-
-    def stop(self):
-        self.proxy_task.cancel()
+    def did_receive_mappings(self, mappings):
+        self.mappings.update(mappings)
 
     async def run(self):
         for provider in self.providers:
@@ -49,12 +45,11 @@ class Badger:
 
             self.zeroconf.register_service(service)
 
-        self.proxy_task = asyncio.create_task(self.proxy.run(self.mappings))
-        match await self.proxy_task:
+        match await self.proxy.run(self.mappings):
             case Ok(_):
                 pass
             case Err(ret):
                 log.error(f'Proxy returned {ret}')
 
-    def did_receive_mappings(self, mappings):
-        self.mappings.update(mappings)
+        self.zeroconf.unregister_all_services()
+        self.zeroconf.close()
