@@ -1,4 +1,4 @@
-import json
+import json, base64
 
 from mitmproxy import http, addonmanager, ctx, exceptions
 
@@ -10,7 +10,7 @@ class ProxyHandler:
         loader.add_option(
             name='mappings',
             typespec=str,
-            default='{}',
+            default=json.dumps({}),
             help='Mappings to use in proxy.'            
         )
 
