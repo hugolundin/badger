@@ -8,7 +8,7 @@ from zeroconf import IPVersion, ServiceInfo, Zeroconf
 from .proxy import Proxy
 from .providers import ConfigProvider, DockerProvider
 from badger.providers import ConfigProvider
-
+from .utilities import ip_address
 
 class Badger:
     def __init__(self, config, docker):
@@ -36,7 +36,7 @@ class Badger:
             service = ServiceInfo(
                 '_http._tcp.local.',
                 f'{name}._http._tcp.local.',
-                addresses=[socket.inet_aton('0.0.0.0')],
+                addresses=[socket.inet_aton(ip_address())],
                 port=80,
                 properties={},
                 server=f'{name}.local',
