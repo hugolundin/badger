@@ -3,6 +3,11 @@ log = logging.getLogger(__name__)
 
 import toml
 import docker
+import asyncio
+from watchdog.observers import Observer
+from watchdog.events import RegexMatchingEventHandler
+
+from .utilities import checksum
 
 class DockerProvider:
     def __init__(self, callback):
@@ -30,11 +35,21 @@ class ConfigProvider:
     def __init__(self, path, callback):
         self.path = path
         self.callback = callback
+        self.observer = Observer()
+        self.identifier = None
 
     async def run(self):
-        self.fetch()
+        await self.fetch()
+        event_handler = RegexMatchingEventHandler(str(self.path))
+        event_handler.on_any_event = self.on_any_event
+        self.observer.schedule(event_handler, self.path.parent)
+        self.observer.start()
+        await asyncio.Event().wait()
 
-    def fetch(self):
+    def on_any_event(self, _):
+        asyncio.run(self.fetch())
+
+    async def fetch(self):
         mappings = {}
 
         try:
@@ -47,7 +62,10 @@ class ConfigProvider:
                     continue
                 
                 mappings[name] = (host, port)
-        except FileNotFoundError:
+        except (FileNotFoundError, toml.TomlDecodeError):
             return
 
-        self.callback(mappings)
+        identifier = checksum(mappings)
+        if identifier != self.identifier:
+            self.identifier = identifier
+            await self.callback(mappings)

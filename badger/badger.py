@@ -25,7 +25,7 @@ class Badger:
             log.debug(f'Docker enabled.')
             self.providers.append(DockerProvider(self.did_receive_mappings))
 
-    def did_receive_mappings(self, mappings):
+    async def did_receive_mappings(self, mappings):
         self.mappings.update(mappings)
 
     async def run(self):
