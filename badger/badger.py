@@ -27,6 +27,7 @@ class Badger:
 
     async def did_receive_mappings(self, mappings):
         self.mappings.update(mappings)
+        self.proxy.event.set()
 
     async def run(self):
         for provider in self.providers:
@@ -41,7 +42,7 @@ class Badger:
                 properties={},
                 server=f'{name}.local',
             )
-
+            
             self.zeroconf.register_service(service)
 
         match await self.proxy.run(self.mappings):

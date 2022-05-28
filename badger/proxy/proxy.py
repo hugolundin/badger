@@ -7,10 +7,11 @@ from pathlib import Path
 from result import Result, Ok, Err
 
 class Proxy:
-    def __init__(self, port=80, script='handler.py', quiet=True):
+    def __init__(self, port=8000, script='handler.py', quiet=True):
         self.port = port
         self.script = Path(__file__).with_name(script).resolve()
         self.quiet = quiet
+        self.event = asyncio.Event()
 
     async def run(self, mappings) -> Result[None, int]:
         
@@ -26,13 +27,18 @@ class Proxy:
         log.debug(f'Started {process.pid}')
 
         try:
-            stdout, stderr = await process.communicate()
-            log.debug(f'{stdout} {stderr}')
+            while True:
+                await asyncio.wait([process.communicate(), self.event.wait()], return_when=asyncio.FIRST_COMPLETED)
 
-            match process.returncode:
-                case 0:
-                    return Ok()
-                case code:
-                    return Err(code)
+                if self.event.is_set():
+                    self.event.clear()
+                    continue
+
+                match process.returncode:
+                    case 0:
+                        return Ok()
+                    case code:
+                        return Err(code)
+
         except asyncio.CancelledError:
             return Ok()

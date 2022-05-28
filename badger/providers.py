@@ -44,7 +44,6 @@ class ConfigProvider:
         event_handler.on_any_event = self.on_any_event
         self.observer.schedule(event_handler, self.path.parent)
         self.observer.start()
-        await asyncio.Event().wait()
 
     def on_any_event(self, _):
         asyncio.run(self.fetch())

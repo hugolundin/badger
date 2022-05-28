@@ -36,10 +36,10 @@ def main(ctx, config, docker, level, external_logs):
     path = pathlib.Path(__file__).parent.with_name(config if config else DEFAULT_CONFIG).resolve()
     badger = Badger(path, docker)
     setproctitle(ctx.command_path)
-
+    
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-
+    
     for s in [SIGINT, SIGTERM]:
         loop.add_signal_handler(s, cancel)
 
