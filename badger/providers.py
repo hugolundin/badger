@@ -47,6 +47,7 @@ class ConfigProvider:
 
     def on_any_event(self, _):
         asyncio.run(self.fetch())
+        asyncio.run(asyncio.sleep(0.1))
 
     async def fetch(self):
         mappings = {}
@@ -67,4 +68,4 @@ class ConfigProvider:
         identifier = checksum(mappings)
         if identifier != self.identifier:
             self.identifier = identifier
-            await self.callback(mappings)
+            self.callback(mappings)
