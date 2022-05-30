@@ -2,12 +2,12 @@ import logging
 log = logging.getLogger(__name__)
 
 import socket, os
+import toml
 from result import Ok, Err
+
 from zeroconf import IPVersion, ServiceInfo, Zeroconf
 
 from .proxy import Proxy
-from .providers import ConfigProvider, DockerProvider
-from badger.providers import ConfigProvider
 from .utilities import ip_address
 
 class Badger:
@@ -19,20 +19,33 @@ class Badger:
 
         if os.path.exists(config):
             log.debug(f'Adding ConfigProvider for {config}.')
-            self.providers.append(ConfigProvider(config, self.did_receive_mappings))
+
+            config = toml.load(config)
+            for name, mapping in config.items():
+                try:
+                    host = mapping['host']
+                    port = mapping['port']
+                except KeyError:
+                    continue
+                
+                self.mappings[name] = (host, port)
 
         if docker:
             log.debug(f'Docker enabled.')
-            self.providers.append(DockerProvider(self.did_receive_mappings))
 
-    async def did_receive_mappings(self, mappings):
-        self.mappings.update(mappings)
+            for container in self.client.containers.list():
+                try:
+                    name = container.labels['BADGER_NAME']
+                    host = container.labels['BADGER_HOST']
+                    port = container.labels['BADGER_PORT']
+                    self.mappings[name] = (host, port)
+                except KeyError:
+                    continue
 
     async def run(self):
-        for provider in self.providers:
-            await provider.run()
+        for name, (host, port) in self.mappings.items():
+            log.debug(f"[{name}] -> {host}:{port}")
 
-        for name, _ in self.mappings.items():
             service = ServiceInfo(
                 '_http._tcp.local.',
                 f'{name}._http._tcp.local.',
@@ -53,4 +66,3 @@ class Badger:
         log.debug('Unregistering Zeroconf services')
         self.zeroconf.unregister_all_services()
         self.zeroconf.close()
-        
