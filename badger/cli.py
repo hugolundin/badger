@@ -1,10 +1,8 @@
 import logging, coloredlogs
 log = logging.getLogger(__name__)
 
-import sys
-import click
-import asyncio
-import pathlib
+import sys, os
+import asyncio, click
 from signal import SIGINT, SIGTERM
 from setproctitle import setproctitle
 
@@ -13,8 +11,6 @@ from .badger import Badger
 def cancel():
     for t in asyncio.all_tasks():
         t.cancel()
-
-DEFAULT_CONFIG = 'config.toml'
 
 @click.command()
 @click.option("--config", type=click.Path(exists=True, file_okay=True, dir_okay=False))
@@ -33,8 +29,8 @@ def main(ctx, config, docker, level, external_logs):
             if not name.startswith(ctx.command_path):
                 logger.disabled = True
 
-    path = pathlib.Path(__file__).parent.with_name(config if config else DEFAULT_CONFIG).resolve()
-    badger = Badger(path, docker)
+    config = os.environ.get('BADGER_CONFIG_PATH')
+    badger = Badger(config, docker)
     setproctitle(ctx.command_path)
 
     loop = asyncio.new_event_loop()
