@@ -23,7 +23,7 @@ def cancel():
     type=click.Choice(coloredlogs.find_defined_levels().keys()),
     default="WARNING",
 )
-@click.option("--external-logs", is_flag=True, default=False)
+@click.option("--external-logs/--no-external-logs", is_flag=True, default=False)
 @click.pass_context
 @config_option()
 def badger(ctx, level, external_logs):
