@@ -1,3 +1,5 @@
+import logging; log = logging.getLogger(__name__)  # fmt: skip
+
 import sys
 import asyncio
 from signal import SIGINT, SIGTERM
@@ -8,8 +10,7 @@ from setproctitle import setproctitle
 from click_extra.config import config_option
 
 from .badger import Badger
-
-import logging; log = logging.getLogger(__name__)  # fmt: skip
+from .utilities import parse_mappings
 
 
 def cancel():
@@ -37,17 +38,6 @@ def badger(ctx, level, external_logs):
         for name, logger in logging.Logger.manager.loggerDict.items():
             if not name.startswith(ctx.command_path):
                 logger.disabled = True
-
-
-def parse_mappings(mappings) -> dict:
-    result = {}
-
-    for mapping in mappings:
-        name, address = mapping.split("@")
-        host, port = address.split(":")
-        result[name] = (host, port)
-
-    return result
 
 
 @badger.command()

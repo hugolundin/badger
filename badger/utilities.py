@@ -14,3 +14,14 @@ def checksum(data: dict) -> str:
 def ip_address() -> str:
     interface = netifaces.gateways()["default"][netifaces.AF_INET][1]
     return netifaces.ifaddresses(interface)[netifaces.AF_INET][0]["addr"]
+
+
+def parse_mappings(mappings) -> dict:
+    result = {}
+
+    for mapping in mappings:
+        name, address = mapping.split("@")
+        host, port = address.split(":")
+        result[name] = (host, port)
+
+    return result
