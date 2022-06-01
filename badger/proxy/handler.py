@@ -1,7 +1,6 @@
 import logging; log = logging.getLogger(__name__)  # fmt: skip
 
 import json
-import base64
 
 from mitmproxy import ctx, http, exceptions, addonmanager
 

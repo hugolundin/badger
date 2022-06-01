@@ -1,6 +1,3 @@
-import logging; log = logging.getLogger(__name__)  # fmt: skip
-
-import os
 import sys
 import asyncio
 from signal import SIGINT, SIGTERM
@@ -12,15 +9,15 @@ from click_extra.config import config_option
 
 from .badger import Badger
 
+import logging; log = logging.getLogger(__name__)  # fmt: skip
+
 
 def cancel():
     for t in asyncio.all_tasks():
         t.cancel()
 
 
-@click.command()
-@click.option("--config", type=click.Path(exists=True, file_okay=True, dir_okay=False))
-@click.option("--docker/--no-docker", default=True)
+@click.group(context_settings={"show_default": True})
 @click.option(
     "--level",
     type=click.Choice(coloredlogs.find_defined_levels().keys()),
@@ -28,7 +25,8 @@ def cancel():
 )
 @click.option("--external-logs", is_flag=True, default=False)
 @click.pass_context
-def main(ctx, config, docker, level, external_logs):
+@config_option()
+def badger(ctx, level, external_logs):
     coloredlogs.install(
         stream=sys.stdout,
         fmt="[%(name)s] %(asctime)s %(levelname)s %(message)s",
@@ -40,8 +38,24 @@ def main(ctx, config, docker, level, external_logs):
             if not name.startswith(ctx.command_path):
                 logger.disabled = True
 
-    config = os.environ.get("BADGER_CONFIG_PATH")
-    badger = Badger(config, docker)
+
+def parse_mappings(mappings) -> dict:
+    result = {}
+
+    for mapping in mappings:
+        name, address = mapping.split("@")
+        host, port = address.split(":")
+        result[name] = (host, port)
+
+    return result
+
+
+@badger.command()
+@click.option("--mappings", multiple=True)
+@click.option("--enable-docker/--disable-docker", is_flag=True, default=True)
+@click.pass_context
+def run(ctx, mappings, enable_docker):
+    badger = Badger(parse_mappings(mappings), enable_docker)
     setproctitle(ctx.command_path)
 
     loop = asyncio.new_event_loop()

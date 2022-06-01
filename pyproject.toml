@@ -6,7 +6,7 @@ authors = ['Hugo Lundin <hugo@lundin.dev>']
 repository = 'https://github.com/hugolundin/badger'
 
 [tool.poetry.scripts]
-badger = "badger.cli:main"
+badger = "badger.cli:badger"
 
 [tool.poetry.dependencies]
 python = "^3.10"

@@ -1,10 +1,7 @@
 import logging; log = logging.getLogger(__name__)  # fmt: skip
 
-import os
 import socket
-import pathlib
 
-import toml
 import docker
 from result import Ok, Err
 from zeroconf import Zeroconf, IPVersion, ServiceInfo
@@ -14,43 +11,29 @@ from .utilities import ip_address
 
 
 class Badger:
-    def __init__(self, config, enable_docker):
-        self.mappings = {}
+    def __init__(self, mappings, enable_docker):
         self.proxy = Proxy()
+        self.mappings = mappings
         self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
-        self.providers = []
-        self.config = {}
 
-        if config:
-            path = pathlib.Path(__file__).parent.with_name(config).resolve()
-            if os.path.exists(path):
-                self.config = toml.load(path)
-            else:
-                log.warning(f"BADGER_CONFIG_PATH ({path}) was not found.")
+        if enable_docker:
+            log.debug(f"Docker enabled.")
 
-        # TODO: Add format validation.
-        for name, address in self.config.get("mappings", {}).items():
-            self.mappings[name] = address.split(":")
-
-        if self.config.get("docker", True):
-            if enable_docker:
-                log.debug(f"Docker enabled.")
-
-                try:
-                    for container in docker.from_env().containers.list():
-                        try:
-                            name = container.labels["BADGER_NAME"]
-                            host = container.labels["BADGER_HOST"]
-                            port = container.labels["BADGER_PORT"]
-                            self.mappings[name] = (host, port)
-                        except KeyError:
-                            continue
-                except docker.errors.DockerException:
-                    log.warning("Unable to connect to Docker.")
+            try:
+                for container in docker.from_env().containers.list():
+                    try:
+                        name = container.labels["BADGER_NAME"]
+                        host = container.labels["BADGER_HOST"]
+                        port = container.labels["BADGER_PORT"]
+                        self.mappings[name] = (host, port)
+                    except KeyError:
+                        continue
+            except docker.errors.DockerException:
+                log.warning("Unable to connect to Docker.")
 
     async def run(self):
         for name, (host, port) in self.mappings.items():
-            log.debug(f"{name} -> {host}:{port}")
+            log.debug(f"{name}.local -> {host}:{port}")
 
             service = ServiceInfo(
                 "_http._tcp.local.",
