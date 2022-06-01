@@ -1,35 +1,46 @@
-import logging, coloredlogs
-log = logging.getLogger(__name__)
+import logging; log = logging.getLogger(__name__)  # fmt: skip
 
-import sys, os
-import asyncio, click
+import os
+import sys
+import asyncio
 from signal import SIGINT, SIGTERM
+
+import click
+import coloredlogs
 from setproctitle import setproctitle
+from click_extra.config import config_option
 
 from .badger import Badger
+
 
 def cancel():
     for t in asyncio.all_tasks():
         t.cancel()
 
+
 @click.command()
 @click.option("--config", type=click.Path(exists=True, file_okay=True, dir_okay=False))
-@click.option('--docker/--no-docker', default=True)
-@click.option('--level', type=click.Choice(coloredlogs.find_defined_levels().keys()), default='WARNING')
-@click.option('--external-logs', is_flag=True, default=False)
+@click.option("--docker/--no-docker", default=True)
+@click.option(
+    "--level",
+    type=click.Choice(coloredlogs.find_defined_levels().keys()),
+    default="WARNING",
+)
+@click.option("--external-logs", is_flag=True, default=False)
 @click.pass_context
 def main(ctx, config, docker, level, external_logs):
     coloredlogs.install(
         stream=sys.stdout,
-        fmt='[%(name)s] %(asctime)s %(levelname)s %(message)s',
-        level=coloredlogs.find_defined_levels()[level])
+        fmt="[%(name)s] %(asctime)s %(levelname)s %(message)s",
+        level=coloredlogs.find_defined_levels()[level],
+    )
 
     if not external_logs:
         for name, logger in logging.Logger.manager.loggerDict.items():
             if not name.startswith(ctx.command_path):
                 logger.disabled = True
 
-    config = os.environ.get('BADGER_CONFIG_PATH')
+    config = os.environ.get("BADGER_CONFIG_PATH")
     badger = Badger(config, docker)
     setproctitle(ctx.command_path)
 
@@ -40,7 +51,7 @@ def main(ctx, config, docker, level, external_logs):
         loop.add_signal_handler(s, cancel)
 
     try:
-       loop.run_until_complete(badger.run())
+        loop.run_until_complete(badger.run())
     except asyncio.exceptions.CancelledError:
         pass
     except KeyboardInterrupt:
