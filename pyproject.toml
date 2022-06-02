@@ -1,9 +1,12 @@
 [tool.poetry]
-name = 'badger'
-version = '0.0.1'
-description = ''
-authors = ['Hugo Lundin <hugo@lundin.dev>']
-repository = 'https://github.com/hugolundin/badger'
+name = "badger"
+version = "0.1"
+description = "mDNS-based reverse proxy for naming services on a local network."
+authors = ["Hugo Lundin <hugo@lundin.dev>"]
+homepage = "https://github.com/hugolundin/badger"
+repository = "https://github.com/hugolundin/badger"
+license = "MIT"
+readme = "README.md"
 
 [tool.poetry.scripts]
 badger = "badger.cli:badger"
