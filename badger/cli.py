@@ -1,7 +1,7 @@
 import logging; log = logging.getLogger(__name__)  # fmt: skip
 
+import os
 import sys
-import asyncio
 
 import click
 import coloredlogs
@@ -27,7 +27,9 @@ def badger(ctx, mappings, enable_docker, level, external_logs):
     coloredlogs.install(
         stream=sys.stdout,
         fmt="[%(name)s] %(asctime)s %(levelname)s %(message)s",
-        level=coloredlogs.find_defined_levels()[level],
+        level=os.environ.get(
+            "COLOREDLOGS_LOG_LEVEL", coloredlogs.find_defined_levels()[level]
+        ),
     )
 
     if not external_logs:
