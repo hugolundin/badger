@@ -2,7 +2,6 @@ import logging; log = logging.getLogger(__name__)  # fmt: skip
 
 import sys
 import asyncio
-from signal import SIGINT, SIGTERM
 
 import click
 import coloredlogs
@@ -10,15 +9,12 @@ from setproctitle import setproctitle
 from click_extra.config import config_option
 
 from .badger import Badger
-from .utilities import parse_mappings
+from .utilities import exec, parse_mappings
 
 
-def cancel():
-    for t in asyncio.all_tasks():
-        t.cancel()
-
-
-@click.group(context_settings={"show_default": True})
+@click.command(context_settings={"show_default": True})
+@click.option("--mappings", multiple=True)
+@click.option("--enable-docker/--disable-docker", is_flag=True, default=True)
 @click.option(
     "--level",
     type=click.Choice(coloredlogs.find_defined_levels().keys()),
@@ -27,7 +23,7 @@ def cancel():
 @click.option("--external-logs/--no-external-logs", is_flag=True, default=False)
 @click.pass_context
 @config_option()
-def badger(ctx, level, external_logs):
+def badger(ctx, mappings, enable_docker, level, external_logs):
     coloredlogs.install(
         stream=sys.stdout,
         fmt="[%(name)s] %(asctime)s %(levelname)s %(message)s",
@@ -39,27 +35,7 @@ def badger(ctx, level, external_logs):
             if not name.startswith(ctx.command_path):
                 logger.disabled = True
 
-
-@badger.command()
-@click.option("--mappings", multiple=True)
-@click.option("--enable-docker/--disable-docker", is_flag=True, default=True)
-@click.pass_context
-def run(ctx, mappings, enable_docker):
     badger = Badger(parse_mappings(mappings), enable_docker)
+
     setproctitle(ctx.command_path)
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    for s in [SIGINT, SIGTERM]:
-        loop.add_signal_handler(s, cancel)
-
-    try:
-        loop.run_until_complete(badger.run())
-    except asyncio.exceptions.CancelledError:
-        pass
-    except KeyboardInterrupt:
-        pass
-    finally:
-        loop.run_until_complete(loop.shutdown_asyncgens())
-        loop.close()
+    exec(badger.run())
