@@ -3,10 +3,8 @@
 mDNS-based reverse proxy for naming services on a local network.
 
 <br>
-<p align="center">
-  <img src="./docs/badger-dark.png#gh-dark-mode-only" style="width: 65%;">
-  <img src="./docs/badger-light.png#gh-light-mode-only" style="width: 65%;">
-</p>
+<img src="./docs/badger-dark.png#gh-dark-mode-only" style="width: 65%;">
+<img src="./docs/badger-light.png#gh-light-mode-only" style="width: 65%;">
 
 ## Sample config
 
