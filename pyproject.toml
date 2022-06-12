@@ -1,15 +1,15 @@
 [tool.poetry]
-name = "badger"
-version = "0.1"
+name = "badger-proxy"
+version = "0.1.9"
 description = "mDNS-based reverse proxy for naming services on a local network."
 authors = ["Hugo Lundin <hugo@lundin.dev>"]
 homepage = "https://github.com/hugolundin/badger"
 repository = "https://github.com/hugolundin/badger"
 license = "MIT"
-readme = "README.md"
+readme = "docs/pypi.md"
 
 [tool.poetry.scripts]
-badger = "badger.cli:badger"
+badger = "badger_proxy.cli:badger"
 
 [tool.poetry.dependencies]
 python = "^3.10"
