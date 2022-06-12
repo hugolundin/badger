@@ -1,5 +1,7 @@
 # badger
 
+[![PyPI version](https://badge.fury.io/py/badger-proxy.svg)](https://badge.fury.io/py/badger-proxy)
+
 mDNS-based reverse proxy for naming services on a local network.
 
 <br>
